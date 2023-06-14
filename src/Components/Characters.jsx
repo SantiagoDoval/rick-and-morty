@@ -1,8 +1,12 @@
-import { useEffect, useState, useReducer, useMemo, useRef} from 'react'
+import { useState, useReducer, useMemo, useRef, useCallback} from 'react'
+import Search from './Search';
+import useCharacters from '../hooks/useCharacters';
 
 const initialState = {
     favorite: []
 }
+
+const URL = 'https://rickandmortyapi.com/api/character'   
 
 const favoriteReducer = (state, action) => {
     switch (action.type) {
@@ -16,32 +20,29 @@ const favoriteReducer = (state, action) => {
     }
 }
 
+
 const Characters = () => {
 
-    const URL = 'https://rickandmortyapi.com/api/character'
-
-    const [characters, setCharacters] = useState([]);
+    
 
     const [favorites, dispatch] = useReducer(favoriteReducer, initialState);
+    const [search, setSearch] = useState('');
+    const searchInput = useRef(null);
 
-    const [search, setSearch] = useState('')
-
-    const searchInput = useRef(null)
-
-    useEffect(() => {
-        fetch(URL)
-            .then(resp => resp.json())
-            .then(data => setCharacters(data.results))
-    }, []);
+    const characters = useCharacters(URL);
 
     const handleClick = (favorite) => {
         dispatch({ type: 'ADD_TO_FAVORITE', payload: favorite })        
     }
 
-    const handleSearch = () => {
-        console.log(searchInput)
+    // const handleSearch = () => {
+    //     console.log(searchInput)
+    //     setSearch(searchInput.current.value)
+    // }
+
+    const handleSearch = useCallback(()=>{
         setSearch(searchInput.current.value)
-    }
+    },[])
 
     // const filteredUsers = characters.filter(user=>{
     //     return user.name.toLowerCase().includes(search.toLowerCase());
@@ -56,9 +57,7 @@ const Characters = () => {
 
     return (
         <>
-            <section>
-                <input type="text" ref={searchInput} onChange={handleSearch} value={search} />
-            </section>
+            <Search searchInput={searchInput} search={search} handleSearch={handleSearch}/>
             <section>
                 <ul className='favorites'>
                     {favorites.favorite.map(fav => (
